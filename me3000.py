@@ -15,8 +15,8 @@ class ME3000:
 
     STANDBY_VAL=0x5555
 
-    ME_HOLDING=0x0200 
-    NUM_HOLDING=69
+    ME_HOLDING=0x0000 
+    NUM_HOLDING=423
     # specific holding registers
     ME_STATE=0x0200
     BATTPCT=0x0210
