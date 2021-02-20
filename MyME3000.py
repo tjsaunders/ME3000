@@ -2,7 +2,7 @@
 
 SLAVE=0x01
 THRESHOLD_FILE="/home/pi/ME3000/pct.txt"
-SERIAL_PORT="/dev/ttyUSB0"
+SERIAL_PORT="/dev/ttyS0"
 MIN_CHARGE=20
 MAX_CHARGE=99
 
