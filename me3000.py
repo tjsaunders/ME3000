@@ -59,10 +59,11 @@ class ME3000:
         self.serial_port = None
 
 
+    """
     def set_auto(self):
-        """ Switch inverter to AUTO."""
+         Switch inverter to AUTO.
         ret_status = True
-        message = write_passive_register(slave_id=self.slave_id, 
+        message = write_deye_register(slave_id=self.slave_id, 
                                          address=self.AUTO, 
                                          value=0)
         try:
@@ -74,9 +75,9 @@ class ME3000:
 
 
     def set_standby(self):
-        """ Switch inverter to STANDBY."""
+         Switch inverter to STANDBY.
         ret_status = True
-        message = write_passive_register(slave_id=self.slave_id, 
+        message = write_deye_register(slave_id=self.slave_id, 
                                          address=self.STANDBY, 
                                          value=self.STANDBY_VAL)
         try:
@@ -88,9 +89,9 @@ class ME3000:
 
 
     def set_charge(self, charge=3000):
-        """ Set charge value."""
+         Set charge value.
         ret_status = True
-        message = write_passive_register(slave_id=self.slave_id, 
+        message = write_deye_register(slave_id=self.slave_id, 
                                          address=self.CHARGE, 
                                          value=charge)
         try:
@@ -102,9 +103,9 @@ class ME3000:
 
 
     def set_discharge(self, discharge=3000):
-        """ Set discharge value."""
+         Set discharge value.
         ret_status = True
-        message = write_passive_register(slave_id=self.slave_id, 
+        message = write_deye_register(slave_id=self.slave_id, 
                                          address=self.DISCHARGE, 
                                          value=discharge)
         try:
@@ -113,8 +114,7 @@ class ME3000:
             ret_status = False
             response = 0
         return ret_status, response
-
-
+    """
     def read_holding(self):
         """ Read all the holding registers from inverter."""
         ret_status = True
@@ -128,6 +128,18 @@ class ME3000:
             response = 0
         return ret_status, response
 
+    def read_deye_register(self, start_address, number_addresses):
+        """ read specific register from inverter."""
+        ret_status = True
+        message = rtu.read_holding_registers(slave_id=self.slave_id,
+                                             starting_address=start_address, 
+                                             quantity=number_addresses)
+        try:
+            response = rtu.send_message(message, self.serial_port)
+        except:
+            ret_status = False
+            response = 0
+        return ret_status, response
 
     def read_input(self):
         """ Read the inverter's input registers."""
@@ -142,9 +154,9 @@ class ME3000:
             response = 0
         return ret_status, response
 
-
+    """
     def get_inverter_state(self):
-        """ Return the inverter state."""
+         Return the inverter state.
         ret_status = True
         message = rtu.read_holding_registers(slave_id=self.slave_id,
                                              starting_address=self.ME_STATE, 
@@ -155,7 +167,7 @@ class ME3000:
             ret_status = False
             response = [-1]
         return ret_status, response[0], self.INV_STATES[response[0]]
-
+    """
 
     def get_battery_percentage(self):
         """ Return the current charge percentage of the batteries."""
@@ -171,24 +183,24 @@ class ME3000:
         return ret_status, response[0]
 
 
-def write_passive_register(slave_id, address, value):
-    """ Return ADU for Modbus extended function code 66: Write Passive Register.
+def write_deye_register(slave_id, address, value):
+    """ Return ADU for Modbus extended function code 66: Write Deye Register.
 
     :param slave_id: Number of slave.
     :return: Byte array with ADU.
     """
-    function = WritePassiveRegister()
+    function = WriteDeyeRegister()
     function._address = address
     function._value = value
 
     return rtu._create_request_adu(slave_id, function.request_pdu)
 
-# SoFar ME30000 Passive Mode
-WRITE_PASSIVE_REGISTER = 66
+#  Deye Mode
+WRITE_DEYE_REGISTER = 1
 
 
 
-class WritePassiveRegister(ModbusFunction):
+class WriteDeyeRegister(ModbusFunction):
     """ Implement SoFar Modbus function code 66.
 
         This function code is used to write a single holding register in a
@@ -234,7 +246,7 @@ class WritePassiveRegister(ModbusFunction):
         ================ ===============
 
     """
-    function_code = WRITE_PASSIVE_REGISTER
+    function_code = WRITE_DEYE_REGISTER
 
     _address = None
     _count = 2
@@ -284,7 +296,7 @@ class WritePassiveRegister(ModbusFunction):
         _, address, value = \
             struct.unpack('>BHh', pdu)
 
-        instance = WritePassiveRegister()
+        instance = WriteDeyeRegister()
         instance._address = address
         instance._value = value
 
@@ -312,16 +324,16 @@ class WritePassiveRegister(ModbusFunction):
         """ Create instance from response PDU.
 
         :param resp_pdu: Byte array with request PDU.
-        :return: Instance of :class:`WritePassiveRegister`.
+        :return: Instance of :class:`WriteDeyeRegister`.
         """
-        write_passive_register = WritePassiveRegister()
+        write_deye_register = WriteDeyeRegister()
 
         quantity, value = struct.unpack('>BH', resp_pdu[1:4])
 
-        write_passive_register._address = quantity
-        write_passive_register.data = value
+        write_deye_register._address = quantity
+        write_deye_register.data = value
 
-        return write_passive_register
+        return write_deye_register
 
 
     def execute(self, slave_id, route_map):
@@ -342,4 +354,4 @@ class WritePassiveRegister(ModbusFunction):
             raise IllegalDataAddressError()
 
 
-function_code_to_function_map[WRITE_PASSIVE_REGISTER] = WritePassiveRegister
+function_code_to_function_map[WRITE_DEYE_REGISTER] = WriteDeyeRegister
